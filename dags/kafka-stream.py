@@ -14,16 +14,31 @@ def get_data():
     res = res.json()['results'][0]
     return res
 
-def format_data(response): # Format data for the Kafka queue
+def format_data(response): # Format data for the Kafka queue; streamline our data
     data = {}
     data['first_name'] = response.get('name').get('first')
     data['last_name'] = response.get('name').get('last')
     data['gender'] = response.get('gender')
-    data['address'] = response.get('location').get('')
-    print(data)
+    location = response.get('location')
+    data['address'] = f"{str(location.get('street').get('number'))} {location.get('street').get('name')}"
+    data['city'] = location.get('city')
+    data['state'] = location.get('state')
+    data['country'] = location.get('country')
+    data['postcode'] = location.get('postcode')
+    data['email'] = response.get('email')
+    data['username'] = response.get('login').get('username')
+    data['date_of_birth'] = response.get('dob').get('date')
+    data['age'] = response.get('dob').get('age')
+    data['registered_date'] = response.get('registered').get('date')
+    data['phone'] = response.get('phone')
+    data['picture'] = response.get('picture').get('medium')
+    
+    return data
 
 def stream_data(): 
-    pass
+    res = get_data()
+    res = format_data(res)
+    print(json.dumps(res, indent=3))
     
 
 # with DAG(
@@ -37,4 +52,4 @@ def stream_data():
 #                 python_callable=stream_data
 #         )
 
-format_data(get_data())
+stream_data()
