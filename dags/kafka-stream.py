@@ -1,7 +1,8 @@
-import requests, json
+import requests, json, time
 from datetime import datetime
 from airflow import DAG
 from airflow.operators.python import PythonOperator
+from kafka import KafkaProducer
 # from rich import print
 
 default_args = {
@@ -38,7 +39,12 @@ def format_data(response): # Format data for the Kafka queue; streamline our dat
 def stream_data(): 
     res = get_data()
     res = format_data(res)
-    print(json.dumps(res, indent=3))
+    # print(json.dumps(res, indent=3))
+
+    # Publish and push the data to the Kafka queue (?)
+    # We are not yet in the Docker container, hence we use localhost instead of 'broker:29092'
+    producer = KafkaProducer(bootstrap_servers=['localhost:9092'], max_block_ms=5000) # timeout
+    producer.send('users_created', json.dumps(res).encode('utf-8'))
     
 
 # with DAG(
