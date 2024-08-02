@@ -103,6 +103,7 @@ services:
       timeout: 10s
       retries: 5
 
+  # We're using Docker for Airflow instead of EC2!
   webserver:
     image: apache/airflow:2.6.0-python3.9
     command: webserver
