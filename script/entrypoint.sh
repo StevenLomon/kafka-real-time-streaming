@@ -1,5 +1,3 @@
-# Commands that Airflow should follow when trying to initialize the webserver
-
 #!/bin/bash
 set -e
 
@@ -22,3 +20,5 @@ fi
 $(command -v airflow) db upgrade
 
 exec airflow webserver
+
+# Commands that Airflow should follow when trying to initialize the webserver
