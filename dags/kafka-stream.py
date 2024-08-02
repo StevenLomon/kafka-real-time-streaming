@@ -3,6 +3,7 @@ from datetime import datetime
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from kafka import KafkaProducer
+from confluent_kafka import Producer
 # from rich import print
 
 default_args = {
