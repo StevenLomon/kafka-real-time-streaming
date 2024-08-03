@@ -154,4 +154,6 @@ if __name__ == "__main__":
                                 .option('keyspace', 'spark_streams')
                                 .option('table', 'created_users')
                                 .start())
+            
+            streaming_query.awaitTermination()
                             
