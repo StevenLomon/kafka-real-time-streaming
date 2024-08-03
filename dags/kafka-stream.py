@@ -36,7 +36,7 @@ def format_data(response): # Format data for the Kafka queue; streamline our dat
     
     return data
 
-def stream_data(): 
+def stream_data():
     # Publish and push the data to the Kafka queue
     producer = KafkaProducer(bootstrap_servers=['broker:29092'], max_block_ms=5000) # timeout
     curr_time = time.time()
@@ -49,22 +49,20 @@ def stream_data():
             res = get_data()
             res = format_data(res)
             # print(json.dumps(res, indent=3))
-             
+
             producer.send('users_created', json.dumps(res).encode('utf-8'))
         except Exception as e:
             logging.error(f'An error occured: {e}')
             continue # Continue the loop and if one minute pass, we break
-    
 
-with DAG(
-    'user_automation',
-    default_args=default_args,
-    schedule_interval='@daily',
-    catchup=False) as dag:
-    
-        streaming_task = PythonOperator(
-                task_id='stream_data_from_api',
-                python_callable=stream_data
-        )
+with DAG('user_automation',
+         default_args=default_args,
+         schedule_interval='@daily',
+         catchup=False) as dag:
 
-stream_data()
+    streaming_task = PythonOperator(
+        task_id='stream_data_from_api',
+        python_callable=stream_data
+    )
+
+# stream_data()
