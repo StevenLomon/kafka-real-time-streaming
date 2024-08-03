@@ -102,9 +102,11 @@ pluggy==1.5.0
 prison==0.2.1
 protobuf==4.25.4
 psutil==6.0.0
+py4j==0.10.9.7
 pycparser==2.22
 Pygments==2.18.0
 PyJWT==2.8.0
+pyspark==3.5.1
 python-daemon==3.0.1
 python-dateutil==2.9.0.post0
 python-nvd3==0.16.0
@@ -121,6 +123,7 @@ rpds-py==0.19.1
 setproctitle==1.3.3
 six==1.16.0
 sniffio==1.3.1
+spark==0.2.1
 SQLAlchemy==1.4.52
 SQLAlchemy-JSONField==1.0.2
 SQLAlchemy-Utils==0.41.2
