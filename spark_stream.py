@@ -71,15 +71,15 @@ def create_spark_connection():
     try:
         s_conn = SparkSession.builder \
             .appName('SparkDataStreaming') \
-            .config('spark.jars.packages', "com.datastax.spark:spark-cassandra-connector_2.13:3.5.1",
-                                            "org.apache.spark:spark-sql-kafka-0-10_2.13:3.5.1") \
+            .config('spark.jars.packages', "com.datastax.spark:spark-cassandra-connector_2.13:3.5.1,"
+                                           "org.apache.spark:spark-sql-kafka-0-10_2.13:3.5.1") \
             .config('spark.cassandra.connection.host', 'localhost') \
             .getOrCreate()
-        
+
         s_conn.sparkContext.setLogLevel("ERROR")
         logging.info("Spark connection created successfully :))")
     except Exception as e:
-        logging.error(f"Couldn't create the Spark session due to exception: {e}")
+        logging.error(f"Couldn't create the spark session due to exception {e}")
 
     return s_conn
 
@@ -127,8 +127,8 @@ def structure_kafka_df_for_cassandra(spark_df):
         StructField("picture", StringType(), False)
     ])
 
-    sel = spark_df.selectExpr("CAST(value AS STRING)")\
-        .select(from_json(col('value'), schema).alias('data')).select("data.*") # Select the data to be inserted
+    sel = spark_df.selectExpr("CAST(value AS STRING)") \
+        .select(from_json(col('value'), schema).alias('data')).select("data.*")
     print(sel)
 
     return sel
