@@ -83,6 +83,7 @@ def create_spark_connection():
 
 
 def connect_to_kafka(spark_conn):
+    # We're using Spark to read data from Kafka
     spark_df = None
     try:
         spark_df = spark_conn.readStream \
@@ -107,11 +108,12 @@ def create_cassandra_connection():
 
         return cas_session
     except Exception as e:
-        logging.error(f"Could not create Cassandra connection due to exceptoin: {e}")
+        logging.error(f"Could not create Cassandra connection due to exception: {e}")
         return None
 
 
-def create_selection_df_from_kafka(spark_df):
+def structure_kafka_df_for_cassandra(spark_df):
+    # We structure the data from the dataframe by selecting only a certain piece from it
     schema = StructType([
         StructField("id", StringType(), False),
         StructField("first_name", StringType(), False),
@@ -127,20 +129,21 @@ def create_selection_df_from_kafka(spark_df):
     ])
 
     sel = spark_df.selectExpr("CAST(value AS STRING)") \
-        .select(from_json(col('value'), schema).alias('data')).select("data.*")
+        .select(from_json(col('value'), schema).alias('data')).select("data.*") # Select the data to be inserted
     print(sel)
 
     return sel
 
 
 if __name__ == "__main__":
-    # create spark connection
     spark_conn = create_spark_connection()
 
     if spark_conn is not None:
-        # connect to kafka with spark connection
+        # Connect to Kafka with Spark connection
         spark_df = connect_to_kafka(spark_conn)
-        selection_df = create_selection_df_from_kafka(spark_df)
+
+        # Structure dataframe for insertion into Cassandra
+        selection_df = structure_kafka_df_for_cassandra(spark_df)
         session = create_cassandra_connection()
 
         if session is not None:
@@ -149,6 +152,7 @@ if __name__ == "__main__":
 
             logging.info("Streaming is being started...")
 
+            # We don't just wanna insert one, we want to insert many through a stream
             streaming_query = (selection_df.writeStream.format("org.apache.spark.sql.cassandra")
                                .option('checkpointLocation', '/tmp/checkpoint')
                                .option('keyspace', 'spark_streams')
