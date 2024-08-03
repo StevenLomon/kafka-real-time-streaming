@@ -5,6 +5,7 @@ from cassandra.auth import PlainTextAuthProvider
 from cassandra.cluster import Cluster
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import from_json, col
+from pyspark.sql.types import StructType, StructField, StringType
 
 # A keyspace is like a schema
 
@@ -110,13 +111,47 @@ def create_cassandra_connection():
         logging.error(f"Couldn't create Cassandra connection due to exception: {e}")
         return None
     
+def structure_kafka_df_for_cassandra(spark_df):
+    # We structure the data from the dataframe by selecting only a certain piece from it
+    schema = StructType([
+        StructField("id", StringType(), False),
+        StructField("first_name", StringType(), False),
+        StructField("last_name", StringType(), False),
+        StructField("gender", StringType(), False),
+        StructField("address", StringType(), False),
+        StructField("post_code", StringType(), False),
+        StructField("email", StringType(), False),
+        StructField("username", StringType(), False),
+        StructField("registered_date", StringType(), False),
+        StructField("phone", StringType(), False),
+        StructField("picture", StringType(), False)
+    ])
+
+    sel = spark_df.selectExpr("CAST(value AS STRING)")\
+        .select(from_json(col('value'), schema).alias('data')).select("data.*") # Select the data to be inserted
+    print(sel)
+
+    return sel
 
 if __name__ == "__main__":
     spark_conn = create_spark_connection()
 
     if spark_conn is not None:
+        # Connect to Kafka with Spark connection
+        spark_df = connect_to_kafka(spark_conn)
+        # Structure datafram for insertion into Cassandra
+        selection_df = structure_kafka_df_for_cassandra(spark_df)
         session = create_cassandra_connection()
 
         if session is not None:
             create_keyspace(session)
             create_table(session)
+            # insert_data(session)
+
+            # We don't just wanna insert one, we want to insert many through a stream
+            streaming_query = (selection_df.writeStream.format("org.apache.spark.sql.cassandra")
+                                .option('checkpoitnLocation', '/tmp/checkpoint')
+                                .option('keyspace', 'spark_streams')
+                                .option('table', 'created_users')
+                                .start())
+                            
