@@ -19,7 +19,7 @@ def insert_data(session, **kwargs):
 
 def create_spark_connection():
     s_conn = None
-    
+
     try:
         s_conn = SparkSession.builder \
             .appName('SparkDataStreaming') \
@@ -36,7 +36,20 @@ def create_spark_connection():
     return s_conn
             
 def create_cassandra_connection():
-    pass
+    # Connect to the Cassandra cluster
+    try:
+        cluster = Cluster(['localhost'])
+        cas_session = cluster.connect()
+
+        return cas_session
+
+    except Exception as e:
+        logging.error(f"Couldn't create Cassandra connection due to exception: {e}")
+        return None
+    
 
 if __name__ == "__main__":
     spark_conn = create_spark_connection()
+
+    if spark_conn is not None:
+        session = create_cassandra_connection()
